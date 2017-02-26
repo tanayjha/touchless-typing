@@ -15,11 +15,11 @@ args = vars(ap.parse_args())
 
 # define the lower and upper boundaries of the "green"
 # ball in the HSV color space
-greenLower = (29, 140, 6)
-greenUpper = (64, 255, 255)
+lower_blue = np.array((100,100,100))
+upper_blue = np.array((120,255,255))
 
-# greenLower = (13, 31, 58)
-# greenUpper = (104, 83, 117)
+# lower_blue = np.array([110,50,50])
+# upper_blue = np.array([130,255,255])
     
 # initialize the list of tracked points, the frame counter,
 # and the coordinate deltas
@@ -57,7 +57,7 @@ while True:
     # construct a mask for the color "green", then perform
     # a series of dilations and erosions to remove any small
     # blobs left in the mask
-    mask = cv2.inRange(hsv, np.array((100,100,100)),np.array((120,255,255)))
+    mask = cv2.inRange(hsv, lower_blue, upper_blue)
     mask = cv2.erode(mask, None, iterations=2)
     mask = cv2.dilate(mask, None, iterations=2)
  
