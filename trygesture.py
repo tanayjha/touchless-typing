@@ -4,6 +4,14 @@ import numpy as np
 import argparse
 import imutils
 import cv2
+from PIL import Image
+import tensorflow as tf
+import time
+from datetime import timedelta
+import os
+import printFinger
+import crop_image
+import predictor
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -17,6 +25,9 @@ args = vars(ap.parse_args())
 # ball in the HSV color space
 lower_blue = np.array((100,100,100))
 upper_blue = np.array((120,255,255))
+
+# greenLower = (29, 86, 6)
+# greenUpper = (64, 255, 255)
 
 # lower_blue = np.array([110,50,50])
 # upper_blue = np.array([130,255,255])
@@ -37,6 +48,9 @@ if not args.get("video", False):
 else:
     camera = cv2.VideoCapture(args["video"])
 
+open('abc', 'w')
+val = 0
+f = 0
 # keep looping
 while True:
     # grab the current frame
@@ -52,7 +66,7 @@ while True:
     frame = imutils.resize(frame, width=600)
     blurred = cv2.GaussianBlur(frame, (11, 11), 0)
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    cv2.rectangle(frame,(100, 100),(300,300),(0,255,255),1)
+    # cv2.rectangle(frame,(100, 100),(300,300),(0,255,255),1)
  
     # construct a mask for the color "green", then perform
     # a series of dilations and erosions to remove any small
@@ -69,6 +83,7 @@ while True:
 
     # only proceed if at least one contour was found
     if len(cnts) > 0:
+        f = f + 1
         # find the largest contour in the mask, then use
         # it to compute the minimum enclosing circle and
         # centroid
@@ -83,9 +98,26 @@ while True:
             # then update the list of tracked points
             cv2.circle(frame, (int(x), int(y)), int(radius),
                 (0, 255, 255), 2)
-            cv2.circle(frame, center, 5, (0, 0, 255), -1)
+            # cv2.circle(frame, center, 5, (0, 255, 255), -1)
             pts.appendleft(center)
+    else:
+        if f >= 10:
+            val = val+1
+            if(val > 50):
+                printFinger.PlotMe()
+                try:
+                    crop_image.CropImage()
+                    predictor.predict()
+                except IndexError:
+                    print("Draw Again!!!")
+                    pass
+                pts.clear()
+                os.remove('abc')
+                f = 0
+                val = 0
+                continue
 
+    # print("AGAIN")
 # loop over the set of tracked points
     for i in np.arange(1, len(pts)):
         open('abc', 'a').write(('%s %s\n' % (pts[i][0], pts[i][1])))
@@ -159,3 +191,4 @@ while True:
 # cleanup the camera and close any open windows
 camera.release()
 cv2.destroyAllWindows()
+
